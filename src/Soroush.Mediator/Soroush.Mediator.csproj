@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><Description>Runtime dispatch for Soroush mediator requests.</Description></PropertyGroup>
+  <ItemGroup><PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" /><ProjectReference Include="../Soroush.Mediator.Abstractions/Soroush.Mediator.Abstractions.csproj" /></ItemGroup>
+</Project>
+

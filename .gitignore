@@ -1,0 +1,14 @@
+# Build output
+**/bin/
+**/obj/
+
+# Local IDE settings
+.idea/
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Local environment files
+.env
+.env.*
