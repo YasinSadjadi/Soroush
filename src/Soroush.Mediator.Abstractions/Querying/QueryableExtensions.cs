@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
-using Soroush.Persistence.Abstractions;
 
-namespace Soroush.Persistence;
+
+namespace Soroush.Mediator.Abstractions;
 
 /// <summary>Applies specifications and advanced queries without compiling expressions or materializing data.</summary>
 /// <remarks>The underlying query provider remains responsible for translating expressions and rejecting unsupported operations.</remarks>

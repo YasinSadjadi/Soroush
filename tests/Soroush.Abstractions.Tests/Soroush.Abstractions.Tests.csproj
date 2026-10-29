@@ -12,8 +12,6 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <ProjectReference Include="../../src/Soroush.Domain.Abstractions/Soroush.Domain.Abstractions.csproj" />
-    <ProjectReference Include="../../src/Soroush.Persistence.Abstractions/Soroush.Persistence.Abstractions.csproj" />
-    <ProjectReference Include="../../src/Soroush.Persistence/Soroush.Persistence.csproj" />
     <ProjectReference Include="../../src/Soroush.Mediator/Soroush.Mediator.csproj" />
     <Using Include="Xunit" />
   </ItemGroup>

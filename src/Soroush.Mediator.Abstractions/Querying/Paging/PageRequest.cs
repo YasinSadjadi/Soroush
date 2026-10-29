@@ -1,4 +1,4 @@
-namespace Soroush.Persistence.Abstractions;
+namespace Soroush.Mediator.Abstractions;
 
 /// <summary>A validated, one-based page request.</summary>
 public sealed class PageRequest

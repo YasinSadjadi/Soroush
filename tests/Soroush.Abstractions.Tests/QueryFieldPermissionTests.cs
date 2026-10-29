@@ -1,6 +1,4 @@
 using System.Linq.Expressions;
-using Soroush.Persistence;
-using Soroush.Persistence.Abstractions;
 using Soroush.Mediator.Abstractions;
 using static Soroush.Abstractions.Tests.ProjectedQueryTests;
 

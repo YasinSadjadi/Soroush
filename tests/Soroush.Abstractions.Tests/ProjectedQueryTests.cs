@@ -4,8 +4,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Soroush.Mediator;
-using Soroush.Persistence;
-using Soroush.Persistence.Abstractions;
 using Soroush.Mediator.Abstractions;
 
 namespace Soroush.Abstractions.Tests;

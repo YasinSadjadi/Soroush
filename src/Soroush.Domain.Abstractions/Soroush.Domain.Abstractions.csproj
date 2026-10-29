@@ -3,4 +3,7 @@
     <Description>Entity, domain event, auditing, and soft deletion contracts for Soroush.</Description>
     <PackageTags>dotnet;backend;domain;abstractions;ddd</PackageTags>
   </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.ComponentModel.Annotations" />
+  </ItemGroup>
 </Project>

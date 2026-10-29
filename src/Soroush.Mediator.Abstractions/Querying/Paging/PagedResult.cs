@@ -1,4 +1,4 @@
-namespace Soroush.Persistence.Abstractions;
+namespace Soroush.Mediator.Abstractions;
 
 /// <summary>An immutable page snapshot with the total count before paging.</summary>
 /// <remarks>Items and count should come from the same snapshot when the adapter supports it.

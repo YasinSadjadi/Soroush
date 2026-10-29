@@ -1,4 +1,4 @@
-namespace Soroush.Persistence.Abstractions;
+namespace Soroush.Mediator.Abstractions;
 
 /// <summary>Supported operators for explicitly mapped query fields.</summary>
 public enum FilterOperator

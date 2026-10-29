@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Soroush.Persistence.Abstractions;
+namespace Soroush.Mediator.Abstractions;
 
 /// <summary>An immutable allowlist translating external field names into typed query expressions.</summary>
 /// <remarks>Names are case-insensitive. Values must have the field's CLR type or be invariant-culture

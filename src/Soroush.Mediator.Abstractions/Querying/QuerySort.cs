@@ -1,4 +1,4 @@
-namespace Soroush.Persistence.Abstractions;
+namespace Soroush.Mediator.Abstractions;
 
 /// <summary>A sort key addressed by the selected output field's name.</summary>
 public sealed class QuerySort

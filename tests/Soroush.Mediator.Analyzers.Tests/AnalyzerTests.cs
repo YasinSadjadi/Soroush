@@ -36,7 +36,6 @@ public class AnalyzerTests
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
             .Select(path => MetadataReference.CreateFromFile(path)).ToList();
         references.Add(MetadataReference.CreateFromFile(typeof(ICommand).Assembly.Location));
-        references.Add(MetadataReference.CreateFromFile(typeof(Soroush.Persistence.Abstractions.QueryOptions).Assembly.Location));
         foreach (var referencedSource in referencedSources)
         {
             var dependency = CSharpCompilation.Create("Dependency" + references.Count,

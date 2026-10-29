@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Soroush.Persistence.Abstractions;
+namespace Soroush.Mediator.Abstractions;
 
 /// <summary>An immutable specification with composable predicates and sort keys.</summary>
 public sealed class Specification<TEntity> : ISpecification<TEntity>

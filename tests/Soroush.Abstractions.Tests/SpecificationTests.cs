@@ -1,5 +1,5 @@
+using Soroush.Mediator.Abstractions;
 using System.Linq.Expressions;
-using Soroush.Persistence.Abstractions;
 
 namespace Soroush.Abstractions.Tests;
 

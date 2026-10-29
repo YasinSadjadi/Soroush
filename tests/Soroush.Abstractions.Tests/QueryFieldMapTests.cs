@@ -1,6 +1,5 @@
+using Soroush.Mediator.Abstractions;
 using System.Globalization;
-using Soroush.Persistence;
-using Soroush.Persistence.Abstractions;
 
 namespace Soroush.Abstractions.Tests;
 

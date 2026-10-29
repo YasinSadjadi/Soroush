@@ -1,4 +1,4 @@
-using Soroush.Persistence.Abstractions;
+using Soroush.Mediator.Abstractions;
 
 namespace Soroush.Abstractions.Tests;
 

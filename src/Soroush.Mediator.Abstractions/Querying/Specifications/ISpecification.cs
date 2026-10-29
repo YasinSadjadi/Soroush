@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Soroush.Persistence.Abstractions;
+namespace Soroush.Mediator.Abstractions;
 
 /// <summary>A predicate and ordered sort keys that an adapter translates into a query.</summary>
 /// <remarks>Adapters must reject unsupported expressions explicitly rather than silently evaluate on the client.</remarks>

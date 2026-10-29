@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Soroush.Persistence.Abstractions;
+namespace Soroush.Mediator.Abstractions;
 
 /// <summary>Model-bindable filters, ordering, and paging addressed by selected output field names.</summary>
 public class QueryOptions

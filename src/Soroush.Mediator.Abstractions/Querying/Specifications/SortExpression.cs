@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Soroush.Persistence.Abstractions;
+namespace Soroush.Mediator.Abstractions;
 
 /// <summary>A typed sort key, preserved without boxing its return type.</summary>
 public sealed class SortExpression<TEntity>

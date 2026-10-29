@@ -1,8 +1,7 @@
+using Soroush.Mediator.Abstractions;
 using System.Collections;
 using System.Linq.Expressions;
 using Soroush.Domain.Abstractions;
-using Soroush.Persistence;
-using Soroush.Persistence.Abstractions;
 
 namespace Soroush.Abstractions.Tests;
 
@@ -134,25 +133,7 @@ public class AdvancedQueryTests
     }
 
     [Fact]
-    public async Task RepositoryPageOverloadForwardsTheQueryPageAndCancellation()
-    {
-        IReadRepository<Order, int> repository = new CapturingRepository();
-        var query = new AdvancedQuery<Order>().FilterBy(order => order.Tenant == 1).PageBy(2, 2);
-        using var cancellation = new CancellationTokenSource();
-
-        var result = await repository.PageAsync(query, cancellation.Token);
-
-        var adapter = Assert.IsType<CapturingRepository>(repository);
-        Assert.Same(query, adapter.Specification);
-        Assert.Same(query.Page, adapter.Page);
-        Assert.Equal(cancellation.Token, adapter.Token);
-        Assert.Equal(4, result.TotalCount);
-        Assert.Equal(new[] { 3, 4 }, result.Items.Select(order => order.Id));
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => repository.PageAsync(query, new CancellationToken(true)));
-    }
-
-    [Fact]
-    public async Task InvalidInputsAndUnorderedPagingAreRejected()
+    public void InvalidInputsAndUnorderedPagingAreRejected()
     {
         var query = new AdvancedQuery<Order>();
         var source = Orders.AsQueryable();
@@ -179,10 +160,6 @@ public class AdvancedQueryTests
         Assert.Throws<ArgumentNullException>(() => ((IQueryable<Order>)null!).ApplyFilters(query));
         Assert.Throws<ArgumentNullException>(() => source.ApplyOrdering(null!));
         Assert.Throws<ArgumentNullException>(() => ((IQueryable<Order>)null!).ApplyOrdering(query));
-        IReadRepository<Order, int> repository = new CapturingRepository();
-        await Assert.ThrowsAsync<InvalidOperationException>(() => repository.PageAsync(query));
-        await Assert.ThrowsAsync<ArgumentNullException>(() => repository.PageAsync(null!));
-        await Assert.ThrowsAsync<ArgumentNullException>(() => ((IReadRepository<Order, int>)null!).PageAsync(query.PageBy()));
     }
 
     private sealed class Order : IEntity<int>
@@ -191,30 +168,6 @@ public class AdvancedQueryTests
         public int Tenant { get; init; }
         public decimal Total { get; init; }
         public string? Name { get; init; }
-    }
-
-    private sealed class CapturingRepository : IReadRepository<Order, int>
-    {
-        public ISpecification<Order>? Specification { get; private set; }
-        public PageRequest? Page { get; private set; }
-        public CancellationToken Token { get; private set; }
-
-        public Task<PagedResult<Order>> PageAsync(ISpecification<Order> specification, PageRequest page, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            Specification = specification;
-            Page = page;
-            Token = cancellationToken;
-            var query = AdvancedQuery<Order>.From(specification).PageBy(page);
-            var count = Orders.AsQueryable().ApplyFilters(specification).LongCount();
-            return Task.FromResult(new PagedResult<Order>(Orders.AsQueryable().ApplyQuery(query, order => order.Id), count, page));
-        }
-
-        public Task<Order?> GetByIdAsync(int id, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<IReadOnlyList<Order>> ListAsync(ISpecification<Order> specification, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<long> CountAsync(ISpecification<Order> specification, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<bool> AnyAsync(ISpecification<Order> specification, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public IAsyncEnumerable<Order> StreamAsync(ISpecification<Order> specification, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
     private sealed class InvocationInspector : ExpressionVisitor

@@ -1,6 +1,4 @@
 using System.Linq.Expressions;
-using Soroush.Persistence;
-using Soroush.Persistence.Abstractions;
 
 namespace Soroush.Mediator.Abstractions;
 

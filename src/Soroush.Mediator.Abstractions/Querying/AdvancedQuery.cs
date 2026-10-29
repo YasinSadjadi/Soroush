@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 
-namespace Soroush.Persistence.Abstractions;
+namespace Soroush.Mediator.Abstractions;
 
 /// <summary>An immutable, fluent specification with optional paging.</summary>
-/// <remarks>Each operation returns a new query. Repository list, count, existence, and stream
+/// <remarks>Each operation returns a new query. List, count, existence, and stream
 /// operations use the specification only; pass <see cref="Page"/> to a paged operation.</remarks>
 public sealed class AdvancedQuery<TEntity> : ISpecification<TEntity>
 {
