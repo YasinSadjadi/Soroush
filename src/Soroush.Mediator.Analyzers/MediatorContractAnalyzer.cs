@@ -32,16 +32,17 @@ public sealed class MediatorContractAnalyzer : DiagnosticAnalyzer
             var commandResult = start.Compilation.GetTypeByMetadataName("Soroush.Mediator.Abstractions.ICommand`1");
             var query = start.Compilation.GetTypeByMetadataName("Soroush.Mediator.Abstractions.IQuery`1");
             var stream = start.Compilation.GetTypeByMetadataName("Soroush.Mediator.Abstractions.IStreamableQuery`1");
-            var commandHandler = start.Compilation.GetTypeByMetadataName("Soroush.Mediator.Abstractions.ICommandHandler`1");
-            var commandResultHandler = start.Compilation.GetTypeByMetadataName("Soroush.Mediator.Abstractions.ICommandHandler`2");
-            var queryHandler = start.Compilation.GetTypeByMetadataName("Soroush.Mediator.Abstractions.IQueryHandler`2");
-            var streamHandler = start.Compilation.GetTypeByMetadataName("Soroush.Mediator.Abstractions.IStreamableQueryHandler`2");
-            if (command is null || commandResult is null || query is null || stream is null || commandHandler is null || commandResultHandler is null || queryHandler is null || streamHandler is null) return;
+            var voidHandler = start.Compilation.GetTypeByMetadataName("Soroush.Mediator.Abstractions.IRequestHandler`1");
+            var responseHandler = start.Compilation.GetTypeByMetadataName("Soroush.Mediator.Abstractions.IRequestHandler`2");
+            var streamHandler = start.Compilation.GetTypeByMetadataName("Soroush.Mediator.Abstractions.IStreamRequestHandler`2");
+            var responseRequest = start.Compilation.GetTypeByMetadataName("Soroush.Mediator.Abstractions.IRequest`1");
+            var streamRequest = start.Compilation.GetTypeByMetadataName("Soroush.Mediator.Abstractions.IStreamRequest`1");
+            if (command is null || commandResult is null || query is null || stream is null || voidHandler is null || responseHandler is null || streamHandler is null || responseRequest is null || streamRequest is null) return;
             var requests = new ConcurrentBag<INamedTypeSymbol>();
             var handlers = new ConcurrentBag<INamedTypeSymbol>();
             bool Is(INamedTypeSymbol type, INamedTypeSymbol definition) => SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, definition);
             bool RequestContract(INamedTypeSymbol type) => Is(type, command) || Is(type, commandResult) || Is(type, query) || Is(type, stream);
-            bool HandlerContract(INamedTypeSymbol type) => Is(type, commandHandler) || Is(type, commandResultHandler) || Is(type, queryHandler) || Is(type, streamHandler);
+            bool HandlerContract(INamedTypeSymbol type) => Is(type, voidHandler) || Is(type, responseHandler) || Is(type, streamHandler);
             start.RegisterSymbolAction(symbolContext =>
             {
                 var type = (INamedTypeSymbol)symbolContext.Symbol;
@@ -104,7 +105,7 @@ public sealed class MediatorContractAnalyzer : DiagnosticAnalyzer
                 foreach (var contract in handler.AllInterfaces.Where(HandlerContract))
                 {
                     if (contract.TypeArguments.Length != 2 || contract.TypeArguments[0] is not INamedTypeSymbol request) continue;
-                    var expectedDefinition = Is(contract, commandResultHandler) ? commandResult : Is(contract, queryHandler) ? query : stream;
+                    var expectedDefinition = Is(contract, streamHandler) ? streamRequest : responseRequest;
                     var declared = request.AllInterfaces.Where(i => Is(i, expectedDefinition)).ToArray();
                     if (declared.Length == 1 && !SymbolEqualityComparer.Default.Equals(declared[0].TypeArguments[0], contract.TypeArguments[1]))
                         end.ReportDiagnostic(Diagnostic.Create(ResponseMismatch, handler.Locations.FirstOrDefault(l => l.IsInSource), handler.Name, contract.TypeArguments[1].ToDisplayString(), request.Name, declared[0].TypeArguments[0].ToDisplayString()));

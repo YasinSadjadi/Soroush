@@ -1,7 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Request, command, query, and streaming contracts for the Soroush mediator.</Description>
+    <Description>Request, command, streaming, and projected query contracts and base handlers for the Soroush mediator.</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Soroush.Persistence/Soroush.Persistence.csproj" />
+  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
   </ItemGroup>

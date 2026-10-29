@@ -21,7 +21,13 @@ jobs:
       - name: Restore
         run: dotnet restore Soroush.sln
       - name: Test
-        run: dotnet test Soroush.sln --configuration Release --no-restore
+        run: dotnet test Soroush.sln --configuration Release --no-restore --collect:"XPlat Code Coverage" --settings coverage.runsettings --results-directory "${{ runner.temp }}/coverage"
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage
+          path: ${{ runner.temp }}/coverage/**/coverage.cobertura.xml
       - name: Determine package version
         id: version
         shell: bash
@@ -34,12 +40,13 @@ jobs:
             fi
             echo "value=$version" >> "$GITHUB_OUTPUT"
           else
-            echo "value=0.1.0" >> "$GITHUB_OUTPUT"
+            version=$(dotnet msbuild src/Soroush.Mediator.Abstractions/Soroush.Mediator.Abstractions.csproj -getProperty:Version)
+            echo "value=$version" >> "$GITHUB_OUTPUT"
           fi
       - name: Pack
         shell: bash
         run: |
-          for project in src/Soroush.Mediator.Abstractions src/Soroush.Mediator src/Soroush.Mediator.Analyzers; do
+          for project in src/*/*.csproj; do
             dotnet pack "$project" --configuration Release --no-restore --output "$RUNNER_TEMP/packages" -p:Version="${{ steps.version.outputs.value }}"
           done
       - uses: actions/upload-artifact@v4

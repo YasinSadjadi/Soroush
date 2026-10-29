@@ -12,3 +12,7 @@
 # Local environment files
 .env
 .env.*
+
+# Test and review output
+**/TestResults/
+.artifacts/

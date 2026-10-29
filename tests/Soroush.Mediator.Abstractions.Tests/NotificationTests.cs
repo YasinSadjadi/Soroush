@@ -96,6 +96,76 @@ public class NotificationTests
 
     [Fact]
     public void NullNotificationIsRejected() => Assert.Throws<ArgumentNullException>(() => { _ = new LocalNotificationPublisher(new Services()).Publish(null!); });
+
+    [Fact]
+    public void LocalPublishersRejectNullServiceProvider()
+    {
+        Assert.Equal("services", Assert.Throws<ArgumentNullException>(() => new LocalNotificationDispatcher(null!)).ParamName);
+        Assert.Equal("services", Assert.Throws<ArgumentNullException>(() => new LocalNotificationPublisher(null!)).ParamName);
+        Assert.Equal("services", Assert.Throws<ArgumentNullException>(() => new NotificationPublisher((IServiceProvider)null!)).ParamName);
+    }
+
+    [Fact]
+    public async Task PreCanceledPublishDoesNotResolveSubscribers()
+    {
+        using var source = new CancellationTokenSource();
+        source.Cancel();
+        var publisher = new LocalNotificationDispatcher(new RejectingServices());
+        var error = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => publisher.Publish(new Event(), source.Token));
+        Assert.Equal(source.Token, error.CancellationToken);
+    }
+
+    [Fact]
+    public async Task MissingSubscriberCollectionIsSuccessful()
+    {
+        await new LocalNotificationDispatcher(new EmptyServices()).Publish(new Event());
+    }
+
+    [Fact]
+    public async Task SubscriberSynchronousExceptionPropagatesWithoutReflectionWrapper()
+    {
+        var failure = new InvalidOperationException("synchronous failure");
+        var publisher = new LocalNotificationDispatcher(new Services(new Subscriber((_, _) => throw failure)));
+        Assert.Same(failure, await Assert.ThrowsAsync<InvalidOperationException>(() => publisher.Publish(new Event())));
+    }
+
+    [Fact]
+    public async Task SubscribersAreAwaitedBeforeNextSubscriberStarts()
+    {
+        var completion = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondCalled = false;
+        var publisher = new LocalNotificationPublisher(new Services(
+            new Subscriber((_, _) => completion.Task),
+            new Subscriber((_, _) => { secondCalled = true; return Task.CompletedTask; })));
+        var publishing = publisher.Publish(new Event());
+        Assert.False(secondCalled);
+        Assert.False(publishing.IsCompleted);
+        completion.SetResult(null);
+        await publishing.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True(secondCalled);
+    }
+
+    [Fact]
+    public async Task ExplicitDispatcherOverridesLocalDeliveryInProviderConstructor()
+    {
+        var dispatcher = new RecordingDispatcher();
+        var publisher = new NotificationPublisher(new RejectingServices(), dispatcher);
+        var notification = new Event();
+        var publishing = publisher.Publish(notification);
+        Assert.Same(notification, dispatcher.Notification);
+        dispatcher.Completion.SetResult(null);
+        await publishing;
+    }
+
+    private sealed class EmptyServices : IServiceProvider
+    {
+        public object? GetService(Type serviceType) => null;
+    }
+
+    private sealed class RejectingServices : IServiceProvider
+    {
+        public object? GetService(Type serviceType) => throw new InvalidOperationException("Services must not be resolved.");
+    }
 }
 
 

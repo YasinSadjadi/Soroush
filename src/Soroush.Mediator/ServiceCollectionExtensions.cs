@@ -13,6 +13,8 @@ public static class ServiceCollectionExtensions
     {
         if (services is null) throw new ArgumentNullException(nameof(services));
         if (assemblies is null) throw new ArgumentNullException(nameof(assemblies));
+        if (assemblies.Any(assembly => assembly is null))
+            throw new ArgumentException("Assemblies cannot contain null.", nameof(assemblies));
         services.TryAddScoped<ISender, Mediator>();
         services.TryAddScoped<IRequestDispatcher, LocalRequestDispatcher>();
         services.TryAddScoped<INotificationPublisher, NotificationPublisher>();

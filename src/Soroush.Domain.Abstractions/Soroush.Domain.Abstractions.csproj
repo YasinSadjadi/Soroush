@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Entity, domain event, auditing, and soft deletion contracts for Soroush.</Description>
+    <PackageTags>dotnet;backend;domain;abstractions;ddd</PackageTags>
+  </PropertyGroup>
+</Project>
