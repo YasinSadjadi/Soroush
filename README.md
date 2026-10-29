@@ -131,3 +131,27 @@ from `CommandHandler<TCommand>` or `CommandHandler<TCommand, TResponse>`.
 These base classes are optional; the existing interfaces remain supported.
 
 
+
+## CI and NuGet releases
+
+GitHub Actions restores and tests the solution and uploads the three NuGet packages
+on pushes to `main`, pull requests, and manual runs. These builds use the version in
+`Directory.Build.props` and do not publish to NuGet.org.
+
+To publish, create a NuGet.org API key with permission to push new packages and
+versions for `Soroush.Mediator*`, and add it as the repository Actions secret
+`NUGET_API_KEY` (Settings > Secrets and variables > Actions). Do not commit the key.
+Ensure the package IDs are available or owned by your NuGet account. Push a version
+tag such as `v0.1.0` to run the tests, build all three packages with that version,
+and publish them to NuGet.org:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Use a new tag and version for each release. Existing package versions are skipped
+on a retry; NuGet does not allow replacing an already published version. A failed
+release can be retried from the Actions page after fixing the problem. Prerelease
+versions such as `v0.2.0-beta.1` are supported. Package publication may take time to
+appear on NuGet.org.
