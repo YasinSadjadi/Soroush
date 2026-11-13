@@ -1,6 +1,18 @@
-# Soroush
+# Soroush Mediator
 
-Soroush is a collection of .NET libraries for backend systems.
+Soroush is a .NET mediator library for backend systems, with command/query dispatch,
+streaming, notifications, projected queries, compile-time analyzers and optional diagnostics.
+
+The repository builds only these four NuGet packages:
+
+| Package | Purpose |
+| --- | --- |
+| `Soroush.Mediator.Abstractions` | Requests, handlers, pipeline contracts and projected query helpers |
+| `Soroush.Mediator` | Runtime dispatch and dependency injection |
+| `Soroush.Mediator.Analyzers` | Compile-time request and handler diagnostics |
+| `Soroush.Mediator.Diagnostics` | Optional structured logs, tracing and metrics |
+
+Other projects, including tests and the diagnostics demo, are not packable.
 
 ## Projected queries
 
@@ -239,43 +251,6 @@ during normal handler execution, override `CreateQuery(request)` and extend
 filters. `QueryOptions.ToQuery(filterable, orderable)` is available when an adapter
 needs to inspect the validated specification and page with explicit permissions.
 
-## Domain abstractions
-
-`Soroush.Domain.Abstractions` targets .NET Standard 2.0 and .NET 8. The .NET Standard
-asset references `System.ComponentModel.Annotations` for mapping annotations.
-It provides `Entity`, `IEntity<TKey>`, `IDomainEvent`, `IDomainEventSource`, `IAuditable`, and `ISoftDeletable`.
-
-### Base entity
-
-`Entity` mirrors the base entity in Sheng.Ai: public read/write `Guid Id`,
-`DateTime CreatedAt`, and nullable `DateTime? ModifiedAt`. It implements
-`IEntity<Guid>` so derived entities share the identity contract.
-Values retain their CLR defaults until assigned; identity generation and timestamp
-updates belong to the application or persistence adapter.
-
-```csharp
-public sealed class Customer : Entity
-{
-    public string Name { get; set; } = string.Empty;
-}
-```
-
-Call `Touch()` to set `ModifiedAt` to the current UTC time. Call
-`SuppressModifiedAtUpdate()` to preserve its current value across subsequent touches,
-and `SuppressModifiedAtUpdate(false)` to enable updates again. Both methods are virtual.
-Database adapters should call `Touch()` instead of assigning `ModifiedAt` directly to
-honor suppression; the public setter remains available for explicit assignments.
-
-The instance flag `IsModifiedAtUpdateSuppressed` uses the standard .NET
-`System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute`, allowing adapters
-such as EF Core to recognize it. Apply `[NotMapped]` to
-other members that should be excluded from mapping; applying it to a class excludes
-the entire entity type. Adapters that do not support annotations must explicitly
-honor this metadata.
-
-`Entity` does not implement `IAuditable`, whose separate contract uses
-`DateTimeOffset CreatedAt` and `DateTimeOffset? UpdatedAt`.
-
 ## Mediator abstractions
 
 `Soroush.Mediator.Abstractions` targets .NET Standard 2.0 and .NET 8. The .NET Standard asset uses
@@ -421,7 +396,7 @@ These base classes are optional; the existing interfaces remain supported.
 
 ## CI and NuGet releases
 
-GitHub Actions restores and tests the solution and uploads all library NuGet packages
+GitHub Actions restores and tests the solution and uploads the four Mediator NuGet packages
 on pushes to `main`, pull requests, and manual runs. These builds use the version in
 `Directory.Build.props` and do not publish to NuGet.org.
 
@@ -429,7 +404,7 @@ To publish, create a NuGet.org API key with permission to push new packages and
 versions for `Soroush.*`, and add it as the repository Actions secret
 `NUGET_API_KEY` (Settings > Secrets and variables > Actions). Do not commit the key.
 Ensure the package IDs are available or owned by your NuGet account. Push a version
-tag such as `v0.1.2` to run the tests, build all packages with that version,
+tag such as `v0.1.2` to run the tests, build those four packages with that version,
 and publish them to NuGet.org:
 
 ```sh

@@ -11,7 +11,11 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageId>$(MSBuildProjectName)</PackageId>
     <PackageTags>dotnet;backend;mediator</PackageTags>
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
+    <IsPackable Condition="'$(MSBuildProjectName)' == 'Soroush.Mediator' Or
+                           '$(MSBuildProjectName)' == 'Soroush.Mediator.Abstractions' Or
+                           '$(MSBuildProjectName)' == 'Soroush.Mediator.Analyzers' Or
+                           '$(MSBuildProjectName)' == 'Soroush.Mediator.Diagnostics'">true</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 </Project>

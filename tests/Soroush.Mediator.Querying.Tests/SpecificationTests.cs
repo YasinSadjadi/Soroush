@@ -1,7 +1,7 @@
 using Soroush.Mediator.Abstractions;
 using System.Linq.Expressions;
 
-namespace Soroush.Abstractions.Tests;
+namespace Soroush.Mediator.Querying.Tests;
 
 public class SpecificationTests
 {

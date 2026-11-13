@@ -1,9 +1,8 @@
 using Soroush.Mediator.Abstractions;
 using System.Collections;
 using System.Linq.Expressions;
-using Soroush.Domain.Abstractions;
 
-namespace Soroush.Abstractions.Tests;
+namespace Soroush.Mediator.Querying.Tests;
 
 public class AdvancedQueryTests
 {
@@ -162,7 +161,7 @@ public class AdvancedQueryTests
         Assert.Throws<ArgumentNullException>(() => ((IQueryable<Order>)null!).ApplyOrdering(query));
     }
 
-    private sealed class Order : IEntity<int>
+    private sealed class Order
     {
         public int Id { get; init; }
         public int Tenant { get; init; }

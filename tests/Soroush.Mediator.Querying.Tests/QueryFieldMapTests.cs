@@ -1,7 +1,7 @@
 using Soroush.Mediator.Abstractions;
 using System.Globalization;
 
-namespace Soroush.Abstractions.Tests;
+namespace Soroush.Mediator.Querying.Tests;
 
 public class QueryFieldMapTests
 {

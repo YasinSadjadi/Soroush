@@ -48,7 +48,13 @@ jobs:
       - name: Pack
         shell: bash
         run: |
-          for project in src/*/*.csproj; do
+          projects=(
+            src/Soroush.Mediator.Abstractions/Soroush.Mediator.Abstractions.csproj
+            src/Soroush.Mediator/Soroush.Mediator.csproj
+            src/Soroush.Mediator.Analyzers/Soroush.Mediator.Analyzers.csproj
+            src/Soroush.Mediator.Diagnostics/Soroush.Mediator.Diagnostics.csproj
+          )
+          for project in "${projects[@]}"; do
             dotnet pack "$project" --configuration Release --no-restore --output "$RUNNER_TEMP/packages" -p:Version="${{ steps.version.outputs.value }}"
           done
       - uses: actions/upload-artifact@v4

@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Soroush.Mediator;
 using Soroush.Mediator.Abstractions;
 
-namespace Soroush.Abstractions.Tests;
+namespace Soroush.Mediator.Querying.Tests;
 
 public class ProjectedQueryTests
 {

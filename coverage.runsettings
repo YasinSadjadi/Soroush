@@ -5,7 +5,7 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>cobertura</Format>
-          <Include>[Soroush.*]*</Include>
+          <Include>[Soroush.Mediator*]*</Include>
           <Exclude>[*.Tests]*</Exclude>
         </Configuration>
       </DataCollector>

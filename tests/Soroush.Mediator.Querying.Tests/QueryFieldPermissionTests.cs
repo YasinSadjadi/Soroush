@@ -1,8 +1,8 @@
 using System.Linq.Expressions;
 using Soroush.Mediator.Abstractions;
-using static Soroush.Abstractions.Tests.ProjectedQueryTests;
+using static Soroush.Mediator.Querying.Tests.ProjectedQueryTests;
 
-namespace Soroush.Abstractions.Tests;
+namespace Soroush.Mediator.Querying.Tests;
 
 public class QueryFieldPermissionTests
 {
