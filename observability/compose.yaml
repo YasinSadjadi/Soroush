@@ -1,0 +1,82 @@
+name: soroush-observability
+services:
+  storage-init:
+    image: busybox:1.37.0
+    user: "0:0"
+    command: ["sh", "-c", "chown 10001:10001 /collector /tempo /loki"]
+    volumes:
+      - collector-data:/collector
+      - tempo-data:/tempo
+      - loki-data:/loki
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.165.0
+    user: "10001:10001"
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./collector.yaml:/etc/otelcol/config.yaml:ro
+      - collector-data:/var/lib/otelcol
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+      - "127.0.0.1:8889:8889"
+      - "127.0.0.1:13133:13133"
+    depends_on:
+      storage-init:
+        condition: service_completed_successfully
+    mem_limit: 512m
+    restart: unless-stopped
+  loki:
+    image: grafana/loki:3.7.9
+    user: "10001:10001"
+    command: ["-config.file=/etc/loki/config.yaml"]
+    volumes:
+      - ./loki.yaml:/etc/loki/config.yaml:ro
+      - loki-data:/loki
+    ports: ["127.0.0.1:3100:3100"]
+    depends_on:
+      storage-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+  tempo:
+    image: grafana/tempo:3.1.1
+    user: "10001:10001"
+    command: ["-target=all", "-config.file=/etc/tempo/config.yaml"]
+    volumes:
+      - ./tempo.yaml:/etc/tempo/config.yaml:ro
+      - tempo-data:/var/tempo
+    ports: ["127.0.0.1:3200:3200"]
+    depends_on:
+      storage-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.retention.time=30d
+      - --enable-feature=exemplar-storage
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - ./alerts.yaml:/etc/prometheus/alerts.yaml:ro
+      - prometheus-data:/prometheus
+    ports: ["127.0.0.1:9090:9090"]
+    restart: unless-stopped
+  grafana:
+    image: grafana/grafana:13.3.1
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD before starting}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports: ["127.0.0.1:3000:3000"]
+    restart: unless-stopped
+volumes:
+  collector-data:
+  tempo-data:
+  loki-data:
+  prometheus-data:
+  grafana-data:

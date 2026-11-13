@@ -22,6 +22,8 @@ jobs:
         run: dotnet restore Soroush.sln
       - name: Test
         run: dotnet test Soroush.sln --configuration Release --no-restore --collect:"XPlat Code Coverage" --settings coverage.runsettings --results-directory "${{ runner.temp }}/coverage"
+      - name: Verify diagnostics SDK sample
+        run: dotnet run --project samples/Soroush.Diagnostics.Demo --configuration Release --no-restore -- --in-memory
       - name: Upload coverage reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -67,3 +69,34 @@ jobs:
           for package in "$RUNNER_TEMP"/packages/*.nupkg; do
             dotnet nuget push "$package" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_API_KEY" --skip-duplicate
           done
+
+  observability:
+    runs-on: ubuntu-latest
+    env:
+      GRAFANA_ADMIN_PASSWORD: ephemeral-ci-validation
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://localhost:4317
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Validate Compose
+        run: docker compose -f observability/compose.yaml config --quiet
+      - name: Validate Collector configuration
+        run: docker run --rm -v "$PWD/observability/collector.yaml:/etc/otelcol/config.yaml:ro" otel/opentelemetry-collector-contrib:0.165.0 validate --config=/etc/otelcol/config.yaml
+      - name: Validate and test alert rules
+        run: docker run --rm --entrypoint /bin/promtool -v "$PWD/observability:/rules:ro" -w /rules prom/prometheus:v3.16.0 test rules alerts.test.yaml
+      - name: Start local stack
+        run: docker compose -f observability/compose.yaml up -d
+      - name: Wait for readiness
+        run: python3 observability/smoke.py
+      - name: Export sample telemetry over OTLP
+        run: dotnet run --project samples/Soroush.Diagnostics.Demo --configuration Release
+      - name: Verify all three stored signals
+        run: python3 observability/smoke.py --data
+      - name: Capture service logs
+        if: always()
+        run: docker compose -f observability/compose.yaml logs --no-color
+      - name: Stop local stack
+        if: always()
+        run: docker compose -f observability/compose.yaml down

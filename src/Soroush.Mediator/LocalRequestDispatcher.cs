@@ -94,7 +94,7 @@ public sealed class LocalRequestDispatcher : IRequestDispatcher
         where TRequest : IRequest<TResponse>
     {
         RequestHandlerDelegate<TResponse> next = ct =>
-            Resolve<IRequestHandler<TRequest, TResponse>>().Handle(request, ct);
+            InvokeHandler<TRequest, TResponse>(request, ct);
         var behaviors =
             services.GetService(typeof(IEnumerable<IPipelineBehavior<TRequest, TResponse>>)) as
                 IEnumerable<IPipelineBehavior<TRequest, TResponse>>;
@@ -129,8 +129,34 @@ public sealed class LocalRequestDispatcher : IRequestDispatcher
                            .ConfigureAwait(false)) yield return item;
     }
 
-    private T Resolve<T>() => (T)(services.GetService(typeof(T)) ??
-                                  throw new InvalidOperationException($"No handler is registered for {typeof(T)}."));
+    private Task<TResponse> InvokeHandler<TRequest, TResponse>(TRequest request, CancellationToken token)
+        where TRequest : IRequest<TResponse>
+    {
+        var handler = Resolve<IRequestHandler<TRequest, TResponse>>();
+        return MediatorObservation.Current is null ? handler.Handle(request, token) : ObserveHandler(handler, request, token);
+    }
+
+    private static async Task<TResponse> ObserveHandler<TRequest, TResponse>(IRequestHandler<TRequest, TResponse> handler,
+        TRequest request, CancellationToken token) where TRequest : IRequest<TResponse>
+    {
+        using var stage = MediatorObservation.BeginStage("Handler", handler.GetType());
+        try
+        {
+            using var active = stage?.Activate();
+            var result = await handler.Handle(request, token).ConfigureAwait(false);
+            stage?.Complete(result as HandlerResult);
+            return result;
+        }
+        catch (Exception ex) { stage?.Fail(ex, token); throw; }
+    }
+
+    private T Resolve<T>()
+    {
+        var handler = (T)(services.GetService(typeof(T)) ??
+            throw new InvalidOperationException($"No handler is registered for {typeof(T)}."));
+        MediatorObservation.Current?.SetHandler(handler!.GetType());
+        return handler;
+    }
 
     private static Type[] GetContracts(object request, Type definition) => request.GetType().GetInterfaces()
         .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == definition).ToArray();

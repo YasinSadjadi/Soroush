@@ -1,0 +1,31 @@
+groups:
+  - name: soroush-mediator
+    rules:
+      - alert: SoroushMediatorUnexpectedFailures
+        expr: |
+          (
+            sum by (soroush_mediator_request_name) (rate(soroush_mediator_operation_duration_seconds_count{soroush_mediator_operation_is_root="true",soroush_mediator_outcome="faulted"}[5m]))
+            /
+            clamp_min(sum by (soroush_mediator_request_name) (rate(soroush_mediator_operation_duration_seconds_count{soroush_mediator_operation_is_root="true",soroush_mediator_outcome!~"cancelled|abandoned"}[5m])), 0.000001)
+          ) > 0.01
+          and on (soroush_mediator_request_name)
+          sum by (soroush_mediator_request_name) (increase(soroush_mediator_operation_duration_seconds_count{soroush_mediator_operation_is_root="true"}[5m])) >= 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Mediator unexpected failure ratio exceeded 1 percent with sufficient traffic"
+      - alert: SoroushCollectorUnavailable
+        expr: up{job="otel-collector"} == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "OpenTelemetry Collector scrape failed"
+      - alert: SoroushTelemetryDeliveryFailures
+        expr: sum(increase({__name__=~"otelcol_(exporter_send_failed|receiver_refused)_(spans|log_records|metric_points)(_total)?"}[5m])) > 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Telemetry delivery is failing or receivers are refusing data"

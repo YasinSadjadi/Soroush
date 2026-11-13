@@ -15,9 +15,11 @@ public static class ServiceCollectionExtensions
         if (assemblies is null) throw new ArgumentNullException(nameof(assemblies));
         if (assemblies.Any(assembly => assembly is null))
             throw new ArgumentException("Assemblies cannot contain null.", nameof(assemblies));
-        services.TryAddScoped<ISender, Mediator>();
+        services.TryAddScoped<ISender>(provider => new Mediator(provider.GetRequiredService<IRequestDispatcher>(),
+            provider.GetService<IMediatorObserver>(), provider.GetService<IMediatorOutcomeClassifier>()));
         services.TryAddScoped<IRequestDispatcher, LocalRequestDispatcher>();
-        services.TryAddScoped<INotificationPublisher, NotificationPublisher>();
+        services.TryAddScoped<INotificationPublisher>(provider => new NotificationPublisher(
+            provider.GetRequiredService<INotificationDispatcher>(), provider.GetService<IMediatorObserver>()));
         services.TryAddScoped<INotificationDispatcher, LocalNotificationDispatcher>();
         foreach (var implementation in assemblies.Distinct().SelectMany(a => a.GetTypes()).Where(t => t.IsClass && !t.IsAbstract && !t.ContainsGenericParameters))
         {

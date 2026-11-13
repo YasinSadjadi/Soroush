@@ -27,7 +27,14 @@ public sealed class LocalNotificationDispatcher : INotificationDispatcher
         foreach (var subscriber in subscribers)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await subscriber.Handle(notification, cancellationToken).ConfigureAwait(false);
+            using var stage = MediatorObservation.BeginStage("Subscriber", subscriber.GetType());
+            try
+            {
+                using var active = stage?.Activate();
+                await subscriber.Handle(notification, cancellationToken).ConfigureAwait(false);
+                stage?.Complete();
+            }
+            catch (Exception ex) { stage?.Fail(ex, cancellationToken); throw; }
         }
     }
 }

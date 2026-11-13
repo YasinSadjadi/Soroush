@@ -421,7 +421,7 @@ These base classes are optional; the existing interfaces remain supported.
 
 ## CI and NuGet releases
 
-GitHub Actions restores and tests the solution and uploads all six NuGet packages
+GitHub Actions restores and tests the solution and uploads all library NuGet packages
 on pushes to `main`, pull requests, and manual runs. These builds use the version in
 `Directory.Build.props` and do not publish to NuGet.org.
 
@@ -442,3 +442,64 @@ on a retry; NuGet does not allow replacing an already published version. A faile
 release can be retried from the Actions page after fixing the problem. Prerelease
 versions such as `v0.2.0-beta.1` are supported. Package publication may take time to
 appear on NuGet.org.
+
+### Result-based handler stages
+
+For staged execution, use `ResultCommandHandler<TCommand, TValue>` (or
+`ResultCommandHandler<TCommand>` for a status without a value),
+`ResultQueryHandler<TQuery, TValue>`, or `ResultStreamableQueryHandler<TQuery, TValue>`.
+The request declares `HandlerResult<TValue>` (or `HandlerResult` for a command without
+a value) as its response. Existing handler interfaces and base classes remain available.
+
+```csharp
+public sealed class GetName : IQuery<HandlerResult<string>> { }
+public sealed class GetNameHandler : ResultQueryHandler<GetName, string>
+{
+    protected override Task<HandlerResult> HasAccess(GetName request, CancellationToken ct)
+        => Task.FromResult(HandlerResult.Success());
+    protected override Task<HandlerResult<string>> Execute(GetName request, CancellationToken ct)
+        => Task.FromResult(HandlerResult<string>.Success("Soroush"));
+}
+```
+
+Commands call `HasAccess`, `Validate`, and `Execute` in that order, stopping at the
+first failure. Queries call `HasAccess` and `Execute` and have no validation stage.
+Access and validation succeed by default and can be overridden. Return
+`HandlerResult.Failure(code, message)` or `HandlerResult<T>.Failure(code, message)`
+from a stage to report failure. The base handler sets `Code` to the stage that failed;
+`Success` indicates success. Exceptions and cancellation propagate to the caller.
+
+Streaming queries declare `IStreamableQuery<HandlerResult<T>>`. Their staged base
+checks access, calls `PreProcess`, enumerates `Execute`, and calls `PostProcess` once
+when enumeration ends or is disposed. After access succeeds cleanup also runs if
+preparation fails, enumeration throws, cancellation occurs, or the consumer stops early.
+Cleanup receives `CancellationToken.None` so cancellation cannot prevent cleanup.
+A failed preparation or execution result is emitted with its stage code; execution
+stops after the first failed item. Since cleanup can occur during disposal, a failed
+cleanup throws `HandlerStageException` with code `PostProcess`; it can replace an
+earlier exception while preserving it in `PrimaryException`. If access fails, preparation and cleanup are not started. Stream
+consumers should dispose enumerators (as `await foreach` does).
+
+## Mediator diagnostics
+
+`Soroush.Mediator.Diagnostics` adds optional structured logging, tracing and metrics:
+
+```csharp
+services.AddSoroushMediator(typeof(CreateOrderHandler).Assembly);
+services.AddSoroushDiagnostics();
+```
+
+Import `Soroush.Mediator.Diagnostics` for the registration extension. The application
+configures its ILogger provider and OpenTelemetry SDK using source and meter name
+`Soroush.Mediator`. Request/response payloads are not captured. Typed/object requests,
+void commands, streams, notifications and staged Result handlers are covered, with
+distinct outcomes for business failures, cancellation and early stream disposal.
+
+See [the diagnostics guide](docs/mediator-diagnostics.md) for signal contracts,
+exception ownership and configuration, and [the local observability platform](observability/README.md)
+for the Collector, Grafana dashboard and backend setup. Run the SDK sample without
+external services using:
+
+```sh
+dotnet run --project samples/Soroush.Diagnostics.Demo -c Release -- --in-memory
+```

@@ -6,9 +6,13 @@ namespace Soroush.Mediator;
 public sealed class NotificationPublisher : INotificationPublisher
 {
     private readonly INotificationDispatcher dispatcher;
+    private readonly IMediatorObserver? observer;
 
     /// <summary>Creates a publisher using the supplied dispatcher.</summary>
     public NotificationPublisher(INotificationDispatcher dispatcher) => this.dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+    /// <summary>Creates a publisher with optional operation observation.</summary>
+    public NotificationPublisher(INotificationDispatcher dispatcher, IMediatorObserver? observer) : this(dispatcher) =>
+        this.observer = ReferenceEquals(observer, NullMediatorObserver.Instance) ? null : observer;
 
     /// <summary>Creates a publisher using local in-memory dispatch by default, or the supplied dispatcher.</summary>
     /// <param name="services">The provider and scope used for local subscriber resolution.</param>
@@ -20,6 +24,8 @@ public sealed class NotificationPublisher : INotificationPublisher
     }
 
     /// <inheritdoc />
-    public Task Publish(INotification notification, CancellationToken cancellationToken = default) => dispatcher.Publish(notification, cancellationToken);
+    public Task Publish(INotification notification, CancellationToken cancellationToken = default) =>
+        observer is null || notification is null ? dispatcher.Publish(notification!, cancellationToken) :
+        ObservedExecution.Send(notification, "notification", observer, () => dispatcher.Publish(notification, cancellationToken), cancellationToken);
 }
 

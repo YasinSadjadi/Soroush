@@ -1,0 +1,27 @@
+rule_files:
+  - alerts.yaml
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'soroush_mediator_operation_duration_seconds_count{soroush_mediator_request_name="CreateOrder",soroush_mediator_operation_is_root="true",soroush_mediator_outcome="succeeded"}'
+        values: '0+99x20'
+      - series: 'soroush_mediator_operation_duration_seconds_count{soroush_mediator_request_name="CreateOrder",soroush_mediator_operation_is_root="true",soroush_mediator_outcome="faulted"}'
+        values: '0+2x20'
+    alert_rule_test:
+      - eval_time: 11m
+        alertname: SoroushMediatorUnexpectedFailures
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              soroush_mediator_request_name: CreateOrder
+            exp_annotations:
+              summary: "Mediator unexpected failure ratio exceeded 1 percent with sufficient traffic"
+  - interval: 1m
+    input_series:
+      - series: 'soroush_mediator_operation_duration_seconds_count{soroush_mediator_request_name="Stream",soroush_mediator_operation_is_root="true",soroush_mediator_outcome="cancelled"}'
+        values: '0+100x20'
+    alert_rule_test:
+      - eval_time: 11m
+        alertname: SoroushMediatorUnexpectedFailures
+        exp_alerts: []

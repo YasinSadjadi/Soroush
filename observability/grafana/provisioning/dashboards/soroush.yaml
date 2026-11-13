@@ -1,0 +1,9 @@
+apiVersion: 1
+providers:
+  - name: Soroush
+    orgId: 1
+    folder: Soroush
+    type: file
+    disableDeletion: true
+    options:
+      path: /var/lib/grafana/dashboards
