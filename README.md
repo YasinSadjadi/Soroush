@@ -400,16 +400,14 @@ GitHub Actions restores and tests the solution and uploads the four Mediator NuG
 on pushes to `main`, pull requests, and manual runs. These builds use the version in
 `Directory.Build.props` and do not publish to NuGet.org.
 
-To publish, create a NuGet.org API key with permission to push new packages and
-versions for `Soroush.*`, and add it as the repository Actions secret
-`NUGET_API_KEY` (Settings > Secrets and variables > Actions). Do not commit the key.
-Ensure the package IDs are available or owned by your NuGet account. Push a version
-tag such as `v0.1.2` to run the tests, build those four packages with that version,
-and publish them to NuGet.org:
+The publish job uses NuGet.org Trusted Publishing for `YasinSadjadi/Soroush` and
+`build.yml`. The policy allows the four package IDs listed above to be created or
+updated. GitHub Actions exchanges an OIDC token for a short-lived publish key.
+Push a new version tag to test, build, and publish those packages:
 
 ```sh
-git tag v0.1.2
-git push origin v0.1.2
+git tag -a v0.2.0 -m "Soroush Mediator 0.2.0"
+git push origin v0.2.0
 ```
 
 Use a new tag and version for each release. Existing package versions are skipped
